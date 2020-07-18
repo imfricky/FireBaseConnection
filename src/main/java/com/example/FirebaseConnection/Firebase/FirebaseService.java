@@ -200,7 +200,7 @@ public class FirebaseService {
         }
         return questionsArrayList;
     }
-    public void submitQuiz(String googleID,String quizID) throws ExecutionException, InterruptedException {
+    public void submitQuiz(String googleID,String quizID,String quizScore) throws ExecutionException, InterruptedException {
         Firestore db = FirestoreClient.getFirestore();
         DocumentReference documentReference = db.collection("Quiz").document(quizID);
         ApiFuture<DocumentSnapshot> future = documentReference.get();
@@ -218,6 +218,7 @@ public class FirebaseService {
         Topics topics = new Topics();
         topics.setCompletionStatus("Complete");
         topics.setTopicID(quizClass.getTopicID());
+        topics.setQuizScore(quizScore);
 
         DocumentReference documentReference1 = db.collection("Student").document(googleID).collection("Enrolled Courses").document(quizClass.getCourseID());
         ApiFuture<DocumentSnapshot> future1 = documentReference1.get();

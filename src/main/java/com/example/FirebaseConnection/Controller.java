@@ -159,8 +159,8 @@ public class Controller {
         return firebaseService.getAllQuestions(quizID);
     }
     @PostMapping("/submitquiz")
-    public void submitquiz(@RequestParam String googleID, @RequestParam String quizID) throws ExecutionException, InterruptedException {
-        firebaseService.submitQuiz(googleID,quizID);
+    public void submitquiz(@RequestParam String googleID, @RequestParam String quizID, @RequestParam String quizScore) throws ExecutionException, InterruptedException {
+        firebaseService.submitQuiz(googleID,quizID,quizScore);
     }
 //*********************************************************************************
     @GetMapping("/get")
