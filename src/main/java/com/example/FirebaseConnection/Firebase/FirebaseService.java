@@ -17,9 +17,11 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 
+import com.google.protobuf.Api;
 import jdk.jfr.Category;
 import org.springframework.stereotype.Service;
 
+import javax.print.Doc;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,12 +48,28 @@ public class FirebaseService {
         ApiFuture<WriteResult> future = db.collection("Student").document(googleID).set(student);
         return;
     }
-    public String enrollCourse(String googleID, String courseID, String completionStatus){
+    public String enrollCourse(String googleID, String courseID) throws ExecutionException, InterruptedException {
         Firestore db = FirestoreClient.getFirestore();
-        EnrolledCourses ec = new EnrolledCourses();
-        ec.setCourseID(courseID);
-        ec.setCompletionStatus(completionStatus);
+        EnrolledCourses ec = new EnrolledCourses("Incomplete", courseID);
         ApiFuture<WriteResult> future = db.collection("Student").document(googleID).collection("Enrolled Courses").document(courseID).set(ec);
+
+        ApiFuture<QuerySnapshot> querySnapshotApiFuture = db.collection("Courses").document(courseID).collection("Topics").get();
+        List<QueryDocumentSnapshot> queryDocumentSnapshots = querySnapshotApiFuture.get().getDocuments();
+        ArrayList<Topic> topics = new ArrayList<>();
+        for (QueryDocumentSnapshot queryDocumentSnapshot : queryDocumentSnapshots){
+            topics.add(queryDocumentSnapshot.toObject(Topic.class));
+        }
+        for(int i =0; i< topics.size();i++){
+            Topic topic = topics.get(i);
+            Topics topics1 = new Topics(topic.getTopicID(),"Incomplete","0");
+            ApiFuture<WriteResult> future1 = db.collection("Student").document(googleID).collection("Enrolled Courses").document(courseID).collection("Topics").document(topics1.getTopicID()).set(topics1);
+
+        }
+
+        // ApiFuture<QuerySnapshot> querySnapshot = db.collection("Student").document(googleID).collection("Enrolled Courses").document(courseID).collection("Topics").get();
+        // List<QueryDocumentSnapshot> queryDocumentSnapshots = querySnapshot.get().getDocuments();
+
+
         return "Successfully Registered";
     }
 
@@ -182,7 +200,7 @@ public class FirebaseService {
     public void addQuiz(QuizClass quizClass){
         Firestore db = FirestoreClient.getFirestore();
         ApiFuture<WriteResult> future1 = db.collection("Quiz").document(quizClass.getQuizID()).set(quizClass);
-        ApiFuture<WriteResult> future2 = db.collection("Courses").document(quizClass.getCourseID()).collection("Topics").document(quizClass.getTopicID()).collection("Quiz").document(quizClass.getQuizID()).set(quizClass);
+        //ApiFuture<WriteResult> future2 = db.collection("Courses").document(quizClass.getCourseID()).collection("Topics").document(quizClass.getTopicID()).collection("Quiz").document(quizClass.getQuizID()).set(quizClass);
 
     }
     public void addquestions(String quizID, String quesID, questions question){
@@ -208,17 +226,17 @@ public class FirebaseService {
         QuizClass quizClass = new QuizClass();
         if (documentSnapshot.exists()){
             quizClass = documentSnapshot.toObject(QuizClass.class);
-            // System.out.println(quizClass);
+            System.out.println(quizClass);
         }
         else{
             System.out.println("Error in finding document of quizID "+ quizID);
 
         }
 
-        Topics topics = new Topics();
-        topics.setCompletionStatus("Complete");
-        topics.setTopicID(quizClass.getTopicID());
-        topics.setQuizScore(quizScore);
+        Topics topics = new Topics(quizClass.getTopicID(),"Complete",quizScore);
+        //topics.setCompletionStatus("Complete");
+        //topics.setTopicID(quizClass.getTopicID());
+        //topics.setQuizScore(quizScore);
 
         DocumentReference documentReference1 = db.collection("Student").document(googleID).collection("Enrolled Courses").document(quizClass.getCourseID());
         ApiFuture<DocumentSnapshot> future1 = documentReference1.get();
@@ -231,9 +249,83 @@ public class FirebaseService {
         else {
             System.out.println("Course "+ quizClass.getCourseID()+ "not enrolled into student " + googleID);
         }
+        String courseID = quizClass.getCourseID();
+        topicsenrolled(googleID,courseID);
+
+    }
+    public void topicsenrolled(String googleID, String courseID) throws ExecutionException, InterruptedException {
+        Firestore db = FirestoreClient.getFirestore();
+        ApiFuture<QuerySnapshot> querySnapshot = db.collection("Student").document(googleID).collection("Enrolled Courses").document(courseID).collection("Topics").get();
+        List<QueryDocumentSnapshot> queryDocumentSnapshots = querySnapshot.get().getDocuments();
+        ArrayList<Topics> topics = new ArrayList<>();
+        int marks=0;
+
+        for(QueryDocumentSnapshot queryDocumentSnapshot : queryDocumentSnapshots){
+            topics.add(queryDocumentSnapshot.toObject(Topics.class));
+
+        }
+        for(int i =0 ; i< topics.size();i++){
+            Topics topics1 = new Topics();
+
+            topics1 = topics.get(i);
+            //System.out.println(topics1);
+            marks +=Integer.parseInt(topics1.getQuizScore())  ;
+        }
+        int flag=0;
+        for(int i =0 ; i< topics.size();i++){
+            Topics topics1 = new Topics();
+
+            topics1 = topics.get(i);
+            //System.out.println(topics1);
+            if (topics1.getCompletionStatus().equals("Complete"))  {
+                flag++;
+            }
+
+
+        }
+        if(flag==(topics.size())){
+
+            DocumentReference documentReference = db.collection("Student").document(googleID).collection("Enrolled Courses").document(courseID);
+            ApiFuture<DocumentSnapshot> future = documentReference.get();
+            DocumentSnapshot documentSnapshot = future.get();
+            EnrolledCourses ec = new EnrolledCourses();
+            if(documentSnapshot.exists()){
+                ec = documentSnapshot.toObject(EnrolledCourses.class);
+            }
+            else{
+                System.out.println("No Enrolled course found for student id "+ googleID +"and courseID "+ courseID );
+
+            }
+            ec.setCompletionStatus("Complete");
+            ApiFuture<WriteResult> future1 = db.collection("Student").document(googleID).collection("Enrolled Courses").document(courseID).set(ec);
+
+            System.out.println("Course Completed");
+
+        }
+        //System.out.println(marks);
+        //System.out.println(topics);
+
+    }
+
+    public ArrayList completedCourses(String googleID) throws ExecutionException, InterruptedException {
+        Firestore db = FirestoreClient.getFirestore();
+        ApiFuture<QuerySnapshot> future = db.collection("Student").document(googleID).collection("Enrolled Courses").get();
+        List<QueryDocumentSnapshot> queryDocumentSnapshots = future.get().getDocuments();
+        ArrayList<EnrolledCourses> ec = new ArrayList<>();
+        for (QueryDocumentSnapshot queryDocumentSnapshot : queryDocumentSnapshots){
+            EnrolledCourses ec1 = new EnrolledCourses();
+            ec1 = queryDocumentSnapshot.toObject(EnrolledCourses.class);
+            if(ec1.getCompletionStatus().equals("Complete")) {
+                ec.add(queryDocumentSnapshot.toObject(EnrolledCourses.class));
+            }
+        }
+
+        return ec;
 
     }
     //***************************************************************************************
+
+
 
     public Person getUserDetails(String name) throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();

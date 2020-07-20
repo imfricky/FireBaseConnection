@@ -15,6 +15,11 @@ public class Topics {
         this.quizScore = quizScore;
     }
 
+    @Override
+    public String toString() {
+        return "quiz score : " + quizScore + "\n";
+    }
+
     public String getTopicID() {
         return topicID;
     }

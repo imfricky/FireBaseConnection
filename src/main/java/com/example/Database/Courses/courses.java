@@ -84,12 +84,13 @@ public class courses {
 /**
  *
  {
- "catID" : "10",
+ "catID" : "60",
  "courseCategory" : "AI",
  "courseID" : "102",
  "courseName" : "Artificial Intelligence 1",
  "description" : "The following course is under AI",
  "duration" : "10:00:00",
- "currentlyEnrolled" : "1"
+ "currentlyEnrolled" : "1",
+ "photo" : "1.jpg"
  }
  */

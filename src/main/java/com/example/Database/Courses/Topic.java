@@ -24,10 +24,10 @@ public class Topic {
     }
 
 
-
-
-
-
+    @Override
+    public String toString() {
+        return "Topic ID : "+ topicID +"\n";
+    }
 
     public String getTopicID() {
         return topicID;

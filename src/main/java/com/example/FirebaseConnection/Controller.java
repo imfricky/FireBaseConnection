@@ -51,8 +51,8 @@ public class Controller {
         headers.add("Access-Control-Allow-Methods", "*");
         headers.add("Access-Control-Allow-Headers", "X-Requested-With,content-type");
         headers.add("Access-Control-Allow-Credentials", "true");
-        String completionStatus = "Incomplete";
-        return firebaseService.enrollCourse(googleID,courseID,completionStatus);
+
+        return firebaseService.enrollCourse(googleID,courseID);
     }
     @GetMapping("/getenrolledcourses") // To get the students enrolled courses
     public ArrayList getenrolledcourses(@RequestParam String googleID) throws  ExecutionException,InterruptedException{
@@ -91,7 +91,7 @@ public class Controller {
         return firebaseService.getAllCourses();
     }
     @PostMapping("/addnewtopic") // to add new topics in course
-    public void addnewtopics(@RequestHeader String courseID,@RequestBody  Topic topic) throws Exception {
+    public void addnewtopics(@RequestParam String courseID,@RequestBody  Topic topic) throws Exception {
 		HttpHeaders headers = new HttpHeaders();
         headers.add("Access-Control-Allow-Origin", "*");
         headers.add("Access-Control-Allow-Methods", "*");
@@ -149,6 +149,7 @@ public class Controller {
     public void addquiz(@RequestBody QuizClass quizClass){
         firebaseService.addQuiz(quizClass);
     }
+
     @PostMapping("/addquestion")
     public void addquestion(@RequestParam String quizID,@RequestParam String quesID, @RequestBody questions question){
         firebaseService.addquestions(quizID,quesID,question);
@@ -162,11 +163,19 @@ public class Controller {
     public void submitquiz(@RequestParam String googleID, @RequestParam String quizID, @RequestParam String quizScore) throws ExecutionException, InterruptedException {
         firebaseService.submitQuiz(googleID,quizID,quizScore);
     }
+    @GetMapping("/completedcourses")
+    public ArrayList completedCourses(@RequestParam String googleID) throws ExecutionException, InterruptedException {
+        return firebaseService.completedCourses(googleID);
+    }
 //*********************************************************************************
     @GetMapping("/get")
     public Person getuser(@RequestHeader String name) throws ExecutionException, InterruptedException {
         return firebaseService.getUserDetails(name);
 
+    }
+    @GetMapping("/topics")
+    public void topicsenrolled(@RequestParam String googleID, @RequestParam String courseID) throws ExecutionException, InterruptedException {
+         firebaseService.topicsenrolled(googleID,courseID);
     }
 
 
