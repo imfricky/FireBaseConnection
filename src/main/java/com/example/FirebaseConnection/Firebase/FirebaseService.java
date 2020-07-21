@@ -23,6 +23,9 @@ import org.springframework.stereotype.Service;
 
 import javax.print.Doc;
 import java.lang.reflect.Array;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -50,7 +53,7 @@ public class FirebaseService {
     }
     public String enrollCourse(String googleID, String courseID) throws ExecutionException, InterruptedException {
         Firestore db = FirestoreClient.getFirestore();
-        EnrolledCourses ec = new EnrolledCourses("Incomplete", courseID);
+        EnrolledCourses ec = new EnrolledCourses("Incomplete", courseID,0);
         ApiFuture<WriteResult> future = db.collection("Student").document(googleID).collection("Enrolled Courses").document(courseID).set(ec);
 
         ApiFuture<QuerySnapshot> querySnapshotApiFuture = db.collection("Courses").document(courseID).collection("Topics").get();
@@ -226,7 +229,7 @@ public class FirebaseService {
         QuizClass quizClass = new QuizClass();
         if (documentSnapshot.exists()){
             quizClass = documentSnapshot.toObject(QuizClass.class);
-            System.out.println(quizClass);
+            //System.out.println(quizClass);
         }
         else{
             System.out.println("Error in finding document of quizID "+ quizID);
@@ -259,6 +262,7 @@ public class FirebaseService {
         List<QueryDocumentSnapshot> queryDocumentSnapshots = querySnapshot.get().getDocuments();
         ArrayList<Topics> topics = new ArrayList<>();
         int marks=0;
+        int totalQuiz =0;
 
         for(QueryDocumentSnapshot queryDocumentSnapshot : queryDocumentSnapshots){
             topics.add(queryDocumentSnapshot.toObject(Topics.class));
@@ -266,11 +270,12 @@ public class FirebaseService {
         }
         for(int i =0 ; i< topics.size();i++){
             Topics topics1 = new Topics();
-
+            totalQuiz++;
             topics1 = topics.get(i);
             //System.out.println(topics1);
             marks +=Integer.parseInt(topics1.getQuizScore())  ;
         }
+
         int flag=0;
         for(int i =0 ; i< topics.size();i++){
             Topics topics1 = new Topics();
@@ -296,7 +301,13 @@ public class FirebaseService {
                 System.out.println("No Enrolled course found for student id "+ googleID +"and courseID "+ courseID );
 
             }
+            double percentage=0;
+            percentage = ((double) marks/((double) totalQuiz*5))*100;
+
+            double percent = Math.round(percentage * 100.0) / 100.0;
+            System.out.println(percent);
             ec.setCompletionStatus("Complete");
+            ec.setPercentage(percent);
             ApiFuture<WriteResult> future1 = db.collection("Student").document(googleID).collection("Enrolled Courses").document(courseID).set(ec);
 
             System.out.println("Course Completed");

@@ -73,7 +73,7 @@ public class Controller {
         firebaseService.addNewCourse(crs);
     }
     @GetMapping("/getcoursedetails")
-    public courses getcoursedetails(@RequestHeader String courseID) throws ExecutionException, InterruptedException {
+    public courses getcoursedetails(@RequestParam String courseID) throws ExecutionException, InterruptedException {
 		HttpHeaders headers = new HttpHeaders();
         headers.add("Access-Control-Allow-Origin", "*");
         headers.add("Access-Control-Allow-Methods", "*");
@@ -164,6 +164,7 @@ public class Controller {
         firebaseService.submitQuiz(googleID,quizID,quizScore);
     }
     @GetMapping("/completedcourses")
+
     public ArrayList completedCourses(@RequestParam String googleID) throws ExecutionException, InterruptedException {
         return firebaseService.completedCourses(googleID);
     }

@@ -6,6 +6,10 @@ import java.util.List;
 public class EnrolledCourses {
     private String completionStatus;
     private  String courseID;
+
+
+
+    private double percentage;
     //protected ArrayList<QuizData> qz = new ArrayList<QuizData>();
 
 
@@ -13,10 +17,18 @@ public class EnrolledCourses {
         super();
     }
 
-    public EnrolledCourses(String completionStatus, String courseID) {
+    public EnrolledCourses(String completionStatus, String courseID, double percentage) {
         this.completionStatus = completionStatus;
         this.courseID = courseID;
-        //this.qz = qz;
+        this.percentage = percentage;
+    }
+
+    public double getPercentage() {
+        return percentage;
+    }
+
+    public void setPercentage(double percentage) {
+        this.percentage = percentage;
     }
 
     @Override
